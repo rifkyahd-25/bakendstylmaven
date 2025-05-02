@@ -6,6 +6,7 @@ import userRoutes from './routes/user.route.js'
 import postRoutes from './routes/post.route.js'
 import commentRoutes from './routes/comment.route.js'
 import cookieParser from "cookie-parser";
+import cors from 'cors';
 import path from 'path'
 
 dotenv.config();
@@ -25,6 +26,12 @@ const app = express();
 
 app.use(express.json({ limit: "50mb" })); 
 app.use(cookieParser());
+
+
+app.use(cors({
+  origin: '*', // Or replace with: 'https://styledmaven.vercel.app'
+  credentials: true
+}));
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
