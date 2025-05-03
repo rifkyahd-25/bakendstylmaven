@@ -28,10 +28,10 @@ app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 
 
-app.use(cors({
-  origin: '*', // Or replace with: 'https://styledmaven.vercel.app'
-  credentials: true
-}));
+// app.use(cors({
+//   origin: '*', // Or replace with: 'https://styledmaven.vercel.app'
+//   credentials: true
+// }));
 
 app.listen(3000, () => {
   console.log("Server is running on port 3000");

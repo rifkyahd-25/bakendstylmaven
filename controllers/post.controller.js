@@ -91,6 +91,7 @@ export const getposts = async (req, res, next) => {
         ],
       }),
     })
+     // Exclude full content change this
     .populate("author", "username profilePicture")
       .sort({ updatedAt: sortDirection })
       .skip(startIndex)
@@ -113,6 +114,22 @@ export const getposts = async (req, res, next) => {
     next(error);
   }
 };
+
+// /api/post/getpostcontent
+export const getPostContent = async (req, res, next) => {
+  try {
+    const { slug } = req.query;
+    if (!slug) return res.status(400).json({ message: "Slug is required" });
+
+    const post = await Post.findOne({ slug }).select("content");
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    res.status(200).json({ content: post.content });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 export const deletepost = async (req, res, next) => {
   if (!req.user.isAdmin || req.user.id !== req.params.userId) {
