@@ -1,11 +1,13 @@
 import express from "express";
-import { SitemapStream, streamToPromise } from "sitemap";
+import { SitemapStream } from "sitemap";
 import Post from "../models/post.model.js";
 
 const router = express.Router();
 
 router.get("/sitemap.xml", async (req, res) => {
   try {
+    res.header("Content-Type", "application/xml; charset=utf-8");
+
     const smStream = new SitemapStream({ hostname: "https://stylemaven-ashen.vercel.app" });
 
     // Add static pages
@@ -33,30 +35,24 @@ router.get("/sitemap.xml", async (req, res) => {
     });
 
     // Add all blog posts dynamically
-    const posts = await Post.find({}, "slug updatedAt metadescription keywords").sort({ updatedAt: -1 });
-
+    const posts = await Post.find({}, "slug updatedAt").sort({ updatedAt: -1 });
     posts.forEach(post => {
       smStream.write({
         url: `/post/${post.slug}`,
         lastmod: post.updatedAt,
         changefreq: "weekly",
         priority: 0.8,
-        // Custom metadata for SEO (not standard sitemap tags but useful for some crawlers)
-        // Some search engines ignore these, but you can include them in XML if needed
-        // For full SEO meta, also include meta tags in <head> of post pages
-        meta: {
-          title: post.title,
-          description: post.metadescription || post.title,
-          keywords: post.keywords.join(", "),
-        },
       });
     });
 
     smStream.end();
 
-    const sitemapOutput = await streamToPromise(smStream);
-    res.header("Content-Type", "application/xml");
-    res.send(sitemapOutput.toString());
+    // Pipe directly to response to avoid BOM and extra conversion
+    smStream.pipe(res).on("error", (err) => {
+      console.error(err);
+      res.status(500).end();
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).end();
